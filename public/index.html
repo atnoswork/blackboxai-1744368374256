@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport FIDS Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0284c7',
+                        secondary: '#0369a1'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-primary p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-white text-2xl font-bold">Airport FIDS Manager</h1>
+            <button onclick="openAddFlightModal()" class="bg-white text-primary px-4 py-2 rounded-lg hover:bg-gray-100">
+                <i class="fas fa-plus mr-2"></i>Add Flight
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <!-- Filters -->
+        <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Direction</label>
+                    <select id="directionFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                        <option value="">All</option>
+                        <option value="A">Arrival</option>
+                        <option value="D">Departure</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="statusFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                        <option value="">All</option>
+                        <option value="Schedule">Schedule</option>
+                        <option value="Boarding">Boarding</option>
+                        <option value="Departed">Departed</option>
+                        <option value="In Flight">In Flight</option>
+                        <option value="Landed">Landed</option>
+                        <option value="Delayed">Delayed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Search</label>
+                    <input type="text" id="searchInput" placeholder="Flight number, airline..." 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary">
+                        <i class="fas fa-filter mr-2"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flights Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-100 border-b border-gray-200">
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Flight</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Direction</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Airport</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Scheduled</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Gate/Belt</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="flightsTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Flights will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Flight Modal -->
+    <div id="flightModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4" id="modalTitle">Add New Flight</h3>
+                <form id="flightForm" class="space-y-4">
+                    <input type="hidden" id="flightId">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Flight Number</label>
+                        <input type="text" id="flightNumber" name="flightNumber" required minlength="2" maxlength="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" placeholder="e.g. AA123">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Airline</label>
+                        <input type="text" id="airline" name="airline" required minlength="2" 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" 
+                               placeholder="e.g. American Airlines"
+                               list="airlineSuggestions">
+                        <datalist id="airlineSuggestions">
+                            <option value="American Airlines">
+                            <option value="United Airlines">
+                            <option value="Delta Airlines">
+                            <option value="Southwest Airlines">
+                            <option value="Alaska Airlines">
+                            <option value="JetBlue Airways">
+                            <option value="Spirit Airlines">
+                            <option value="Frontier Airlines">
+                            <option value="Hawaiian Airlines">
+                            <option value="Air Canada">
+                            <option value="Lufthansa">
+                        </datalist>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Direction</label>
+                        <select id="direction" name="direction" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                            <option value="A">Arrival</option>
+                            <option value="D">Departure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Airport</label>
+                        <input type="text" id="airport" name="airport" required minlength="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" placeholder="e.g. Los Angeles International Airport">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Airport Code</label>
+                        <input type="text" id="airportCode" name="airportCode" required minlength="3" maxlength="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" placeholder="e.g. LAX">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Scheduled Time</label>
+                        <input type="datetime-local" id="scheduledTime" name="scheduledTime" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                            <option value="Schedule">Schedule</option>
+                            <option value="Boarding">Boarding</option>
+                            <option value="Departed">Departed</option>
+                            <option value="In Flight">In Flight</option>
+                            <option value="Landed">Landed</option>
+                            <option value="Delayed">Delayed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-5">
+                        <button type="button" onclick="closeModal()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary">
+                            Save Flight
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
